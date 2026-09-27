@@ -81,7 +81,7 @@
     form button:hover {
       background-color: #1f6690;
     }
-  </style> <!-- NOVO - fim do bloco de estilo -->
+  </style>
 </head>
 <body>
   <h1>Lista de Usuários</h1>
@@ -122,10 +122,13 @@
             const botaoDeletar = document.createElement("button");
             botaoDeletar.innerHTML = '<i class="fa-solid fa-trash"></i>';
             botaoDeletar.onclick = function () {
-              fetch(`http://localhost:3000/usuarios/${usuario.id}`, {
-                method: "DELETE"
-              }).then(() => carregarUsuarios());
-            };
+  const confirmar = confirm(`Tem certeza que quer deletar ${usuario.nome}?`);
+  if (confirmar) {
+    fetch(`http://localhost:3000/usuarios/${usuario.id}`, {
+      method: "DELETE"
+    }).then(() => carregarUsuarios());
+  }
+};
 
             item.appendChild(botaoEditar);
             item.appendChild(botaoDeletar);
@@ -140,10 +143,15 @@
     form.addEventListener("submit", function (evento) {
       evento.preventDefault();
 
-      const nome = document.getElementById("input-nome").value;
-      const curso = document.getElementById("input-curso").value;
+      const nome = document.getElementById("input-nome").value.trim();
+const curso = document.getElementById("input-curso").value.trim();
 
-      fetch("http://localhost:3000/usuarios", {
+if (nome === "" || curso === "") {
+  alert("Preencha nome e curso corretamente!");
+  return;
+}
+
+fetch("http://localhost:3000/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome, curso })

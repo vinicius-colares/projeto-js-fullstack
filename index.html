@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Usuários</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #2c3e50;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      padding: 10px 15px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    li button {
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16px;
+      margin-left: 8px;
+      padding: 6px 10px;
+      border-radius: 4px;
+    }
+
+    li button:hover {
+      background-color: #eee;
+    }
+
+    .fa-trash {
+      color: #e74c3c;
+    }
+
+    .fa-pen {
+      color: #2980b9;
+    }
+
+    form {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    form input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    form button {
+      padding: 8px 16px;
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    form button:hover {
+      background-color: #1f6690;
+    }
+  </style> <!-- NOVO - fim do bloco de estilo -->
+</head>
+<body>
+  <h1>Lista de Usuários</h1>
+  <ul id="lista-usuarios"></ul>
+
+  <h2>Adicionar novo usuário</h2>
+  <form id="form-usuario">
+    <input type="text" id="input-nome" placeholder="Nome" required>
+    <input type="text" id="input-curso" placeholder="Curso" required>
+    <button type="submit">Adicionar</button>
+  </form>
+
+  <script>
+    function carregarUsuarios() {
+      fetch("http://localhost:3000/usuarios")
+        .then(resposta => resposta.json())
+        .then(usuarios => {
+          const lista = document.getElementById("lista-usuarios");
+          lista.innerHTML = "";
+          usuarios.forEach(usuario => {
+            const item = document.createElement("li");
+            item.textContent = `${usuario.nome} - ${usuario.curso} `;
+
+            const botaoEditar = document.createElement("button");
+            botaoEditar.innerHTML = '<i class="fa-solid fa-pen"></i>';
+            botaoEditar.onclick = function () {
+              const novoNome = prompt("Novo nome:", usuario.nome);
+              const novoCurso = prompt("Novo curso:", usuario.curso);
+              if (novoNome && novoCurso) {
+                fetch(`http://localhost:3000/usuarios/${usuario.id}`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ nome: novoNome, curso: novoCurso })
+                }).then(() => carregarUsuarios());
+              }
+            };
+
+            const botaoDeletar = document.createElement("button");
+            botaoDeletar.innerHTML = '<i class="fa-solid fa-trash"></i>';
+            botaoDeletar.onclick = function () {
+              fetch(`http://localhost:3000/usuarios/${usuario.id}`, {
+                method: "DELETE"
+              }).then(() => carregarUsuarios());
+            };
+
+            item.appendChild(botaoEditar);
+            item.appendChild(botaoDeletar);
+            lista.appendChild(item);
+          });
+        });
+    }
+
+    carregarUsuarios();
+
+    const form = document.getElementById("form-usuario");
+    form.addEventListener("submit", function (evento) {
+      evento.preventDefault();
+
+      const nome = document.getElementById("input-nome").value;
+      const curso = document.getElementById("input-curso").value;
+
+      fetch("http://localhost:3000/usuarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, curso })
+      }).then(() => {
+        carregarUsuarios();
+        form.reset();
+      });
+    });
+  </script>
+</body>
+</html>

@@ -96,7 +96,7 @@
 
   <script>
     function carregarUsuarios() {
-      fetch("http://localhost:3000/usuarios")
+      fetch("/usuarios")
         .then(resposta => resposta.json())
         .then(usuarios => {
           const lista = document.getElementById("lista-usuarios");
@@ -111,7 +111,7 @@
               const novoNome = prompt("Novo nome:", usuario.nome);
               const novoCurso = prompt("Novo curso:", usuario.curso);
               if (novoNome && novoCurso) {
-                fetch(`http://localhost:3000/usuarios/${usuario.id}`, {
+                fetch(`/usuarios/${usuario.id}`, {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ nome: novoNome, curso: novoCurso })
@@ -122,13 +122,13 @@
             const botaoDeletar = document.createElement("button");
             botaoDeletar.innerHTML = '<i class="fa-solid fa-trash"></i>';
             botaoDeletar.onclick = function () {
-  const confirmar = confirm(`Tem certeza que quer deletar ${usuario.nome}?`);
-  if (confirmar) {
-    fetch(`http://localhost:3000/usuarios/${usuario.id}`, {
-      method: "DELETE"
-    }).then(() => carregarUsuarios());
-  }
-};
+              const confirmar = confirm(`Tem certeza que quer deletar ${usuario.nome}?`);
+              if (confirmar) {
+                fetch(`/usuarios/${usuario.id}`, {
+                  method: "DELETE"
+                }).then(() => carregarUsuarios());
+              }
+            };
 
             item.appendChild(botaoEditar);
             item.appendChild(botaoDeletar);
@@ -144,14 +144,14 @@
       evento.preventDefault();
 
       const nome = document.getElementById("input-nome").value.trim();
-const curso = document.getElementById("input-curso").value.trim();
+      const curso = document.getElementById("input-curso").value.trim();
 
-if (nome === "" || curso === "") {
-  alert("Preencha nome e curso corretamente!");
-  return;
-}
+      if (nome === "" || curso === "") {
+        alert("Preencha nome e curso corretamente!");
+        return;
+      }
 
-fetch("/usuarios", {
+      fetch("/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome, curso })

@@ -34,15 +34,15 @@ app.get("/usuarios/adicionar/:nome/:curso", (req, res) => {
 });
 
 app.post("/usuarios", (req, res) => {
-  const { nome, curso } = req.body;
-  db.prepare("INSERT INTO usuarios (nome, curso) VALUES (?, ?)").run(nome, curso);
+  const { nome, curso, email } = req.body;
+  db.prepare("INSERT INTO usuarios (nome, curso, email) VALUES (?, ?, ?)").run(nome, curso, email);
   res.send(`Usuário ${nome} adicionado com sucesso via POST!`);
 });
 
 app.put("/usuarios/:id", (req, res) => {
   const { id } = req.params;
-  const { nome, curso } = req.body;
-  db.prepare("UPDATE usuarios SET nome = ?, curso = ? WHERE id = ?").run(nome, curso, id);
+  const { nome, curso, email } = req.body;
+  db.prepare("UPDATE usuarios SET nome = ?, curso = ?, email = ? WHERE id = ?").run(nome, curso, email, id);
   res.send(`Usuário ${id} atualizado com sucesso!`);
 });
 

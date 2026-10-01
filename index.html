@@ -248,6 +248,7 @@
     <form id="form-usuario">
       <input type="text" id="input-nome" placeholder="Nome" required>
       <input type="text" id="input-curso" placeholder="Curso" required>
+      <input type="email" id="input-email" placeholder="E-mail" required>
       <button type="submit">Adicionar</button>
     </form>
   </div>
@@ -267,6 +268,7 @@
       <h3>Editar usuário</h3>
       <input type="text" id="editar-nome" placeholder="Nome">
       <input type="text" id="editar-curso" placeholder="Curso">
+      <input type="email" id="editar-email" placeholder="E-mail">
       <div class="botoes-editar">
         <button id="btn-editar-salvar">Salvar</button>
         <button id="btn-editar-cancelar">Cancelar</button>
@@ -313,11 +315,13 @@
       const overlay = document.getElementById("overlay-editar");
       const inputNome = document.getElementById("editar-nome");
       const inputCurso = document.getElementById("editar-curso");
+      const inputEmail = document.getElementById("editar-email");
       const btnSalvar = document.getElementById("btn-editar-salvar");
       const btnCancelar = document.getElementById("btn-editar-cancelar");
 
       inputNome.value = usuario.nome;
       inputCurso.value = usuario.curso;
+      inputEmail.value = usuario.email;
       overlay.classList.add("mostrar");
 
       function fechar() {
@@ -329,16 +333,17 @@
       function salvar() {
         const novoNome = inputNome.value.trim();
         const novoCurso = inputCurso.value.trim();
+        const novoEmail = inputEmail.value.trim();
 
-        if (novoNome === "" || novoCurso === "") {
-          mostrarToast("Preencha nome e curso corretamente!", "erro");
+        if (novoNome === "" || novoCurso === "" || novoEmail === "") {
+          mostrarToast("Preencha todos os campos corretamente!", "erro");
           return;
         }
 
         fetch(`/usuarios/${usuario.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nome: novoNome, curso: novoCurso })
+          body: JSON.stringify({ nome: novoNome, curso: novoCurso, email: novoEmail })
         }).then(() => {
           mostrarToast("Usuário atualizado!");
           carregarUsuarios();
@@ -396,7 +401,7 @@
         const item = document.createElement("li");
 
         const span = document.createElement("span");
-        span.textContent = `${usuario.nome} - ${usuario.curso}`;
+        span.textContent = `${usuario.nome} - ${usuario.curso} - ${usuario.email}`;
 
         const botaoEditar = document.createElement("button");
         botaoEditar.innerHTML = '<i class="fa-solid fa-pen"></i>';
@@ -436,16 +441,17 @@
 
       const nome = document.getElementById("input-nome").value.trim();
       const curso = document.getElementById("input-curso").value.trim();
+      const email = document.getElementById("input-email").value.trim();
 
-      if (nome === "" || curso === "") {
-        mostrarToast("Preencha nome e curso corretamente!", "erro");
+      if (nome === "" || curso === "" || email === "") {
+        mostrarToast("Preencha todos os campos corretamente!", "erro");
         return;
       }
 
       fetch("/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, curso })
+        body: JSON.stringify({ nome, curso, email })
       }).then(() => {
         mostrarToast("Usuário adicionado!");
         carregarUsuarios();

@@ -9,5 +9,12 @@ db.exec(`
     email TEXT NOT NULL
   )
 `);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS contas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    senha TEXT NOT NULL
+  )
+`);
 
 module.exports = db;

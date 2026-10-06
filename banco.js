@@ -17,4 +17,14 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tarefas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo TEXT NOT NULL,
+    concluida INTEGER NOT NULL DEFAULT 0,
+    conta_id INTEGER NOT NULL,
+    FOREIGN KEY (conta_id) REFERENCES contas(id)
+  )
+`);
+
 module.exports = db;

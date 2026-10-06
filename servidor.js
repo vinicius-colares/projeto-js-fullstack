@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
+const db = require("./banco");
 
 app.use(cors());
 app.use(express.json());
@@ -22,7 +23,57 @@ function exigirLogin(req, res, next) {
   }
 }
 
-const db = require("./banco");
+
+app.get("/tarefas", exigirLogin, (req, res) => {
+  const tarefas = db
+    .prepare("SELECT * FROM tarefas WHERE conta_id = ?")
+    .all(req.session.contaId);
+  res.json(tarefas);
+});
+
+
+app.post("/tarefas", exigirLogin, (req, res) => {
+  const { titulo } = req.body;
+
+  if (!titulo || titulo.trim() === "") {
+    return res.status(400).send("O título é obrigatório.");
+  }
+
+  const resultado = db
+    .prepare("INSERT INTO tarefas (titulo, conta_id) VALUES (?, ?)")
+    .run(titulo.trim(), req.session.contaId);
+
+  res.json({ id: resultado.lastInsertRowid, titulo: titulo.trim(), concluida: 0 });
+});
+
+// Atualizar tarefa (título e/ou concluída)
+app.put("/tarefas/:id", exigirLogin, (req, res) => {
+  const { titulo, concluida } = req.body;
+
+  const resultado = db
+    .prepare("UPDATE tarefas SET titulo = ?, concluida = ? WHERE id = ? AND conta_id = ?")
+    .run(titulo, concluida ? 1 : 0, req.params.id, req.session.contaId);
+
+  if (resultado.changes === 0) {
+    return res.status(404).send("Tarefa não encontrada.");
+  }
+
+  res.send("Tarefa atualizada!");
+});
+
+// Deletar tarefa
+app.delete("/tarefas/:id", exigirLogin, (req, res) => {
+  const resultado = db
+    .prepare("DELETE FROM tarefas WHERE id = ? AND conta_id = ?")
+    .run(req.params.id, req.session.contaId);
+
+  if (resultado.changes === 0) {
+    return res.status(404).send("Tarefa não encontrada.");
+  }
+
+  res.send("Tarefa deletada!");
+});
+
 
 app.get("/", (req, res) => {
   res.send("Olá, meu primeiro servidor!");
@@ -88,7 +139,7 @@ app.post("/registro", async (req, res) => {
   }
 });
 
-// Login
+
 app.post("/login", async (req, res) => {
   const { email, senha } = req.body;
 
@@ -106,6 +157,7 @@ app.post("/login", async (req, res) => {
 
   req.session.logado = true;
   req.session.email = conta.email;
+  req.session.contaId = conta.id;
   res.send("Login realizado com sucesso!");
 });
 

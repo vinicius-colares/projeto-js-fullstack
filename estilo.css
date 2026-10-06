@@ -216,3 +216,56 @@ form button:hover {
   background: #2980b9;
   color: white;
 }
+
+#tela-login, #tela-registro {
+  max-width: 400px;
+  margin: 60px auto;
+}
+
+#tela-login h2, #tela-registro h2 {
+  text-align: center;
+  color: #2c3e50;
+}
+
+#tela-login form, #tela-registro form {
+  flex-direction: column;
+}
+
+#tela-login input, #tela-registro input {
+  width: 100%;
+}
+
+#tela-login p, #tela-registro p {
+  text-align: center;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+#tela-login a, #tela-registro a {
+  color: #2980b9;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+#cabecalho-usuario {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#btn-sair {
+  background: #ddd;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+#btn-sair:hover {
+  background: #ccc;
+}
+
+.escondido {
+  display: none !important;
+}

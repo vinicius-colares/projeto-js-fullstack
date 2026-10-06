@@ -154,8 +154,6 @@ function renderizarLista(usuarios) {
 document.getElementById("input-busca").addEventListener("input", aplicarFiltroEOrdenacao);
 document.getElementById("select-ordenar").addEventListener("change", aplicarFiltroEOrdenacao);
 
-carregarUsuarios();
-
 const form = document.getElementById("form-usuario");
 form.addEventListener("submit", function (evento) {
   evento.preventDefault();

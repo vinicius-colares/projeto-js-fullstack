@@ -116,6 +116,11 @@ app.post("/logout", (req, res) => {
   });
 });
 
+// Verifica se está logado
+app.get("/sessao", (req, res) => {
+  res.json({ logado: !!req.session.logado, email: req.session.email || null });
+});
+
 const PORTA = process.env.PORT || 3000;
 app.listen(PORTA, () => {
   console.log(`servidor rodando em http://localhost:${PORTA}`);

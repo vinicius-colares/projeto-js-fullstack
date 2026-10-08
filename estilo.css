@@ -269,3 +269,18 @@ form button:hover {
 .escondido {
   display: none !important;
 }
+
+.link-botao {
+  display: inline-block;
+  padding: 8px 14px;
+  background-color: #2980b9;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.link-botao:hover {
+  background-color: #1f6391;
+}

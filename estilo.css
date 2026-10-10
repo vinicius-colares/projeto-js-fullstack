@@ -284,3 +284,19 @@ form button:hover {
 .link-botao:hover {
   background-color: #1f6391;
 }
+
+#filtros {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.filtro {
+  background-color: #dfe6ee;
+  color: #2c3e50;
+}
+
+.filtro.ativo {
+  background-color: #2980b9;
+  color: white;
+}

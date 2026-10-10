@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Perfil</title>
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+  <h1>Meu Perfil</h1>
+  <a href="/index.html" class="link-botao" style="margin-bottom: 12px;">← Voltar</a>
+
+  <div class="card">
+    <h2>Minha conta</h2>
+    <p>E-mail: <strong id="perfil-email"></strong></p>
+  </div>
+
+  <div class="card">
+    <h2>Trocar senha</h2>
+    <form id="form-senha">
+      <input type="password" id="senha-atual" placeholder="Senha atual" required>
+      <input type="password" id="nova-senha" placeholder="Nova senha (mín. 6 caracteres)" required>
+      <button type="submit">Salvar nova senha</button>
+    </form>
+    <p id="mensagem-senha"></p>
+  </div>
+
+  <script src="perfil.js"></script>
+</body>
+</html>

@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.static("."));
 
 app.use(session({
-  secret: "segredo-super-secreto",
+  secret: process.env.SESSION_SECRET || "segredo-so-para-desenvolvimento-local",
   resave: false,
   saveUninitialized: false
 }));
@@ -72,6 +72,35 @@ app.delete("/tarefas/:id", exigirLogin, (req, res) => {
   }
 
   res.send("Tarefa deletada!");
+});
+
+app.put("/perfil/senha", exigirLogin, async (req, res) => {
+  const { senhaAtual, novaSenha } = req.body;
+
+  if (!senhaAtual || !novaSenha) {
+    return res.status(400).send("Preencha a senha atual e a nova senha.");
+  }
+
+  if (novaSenha.length < 6) {
+    return res.status(400).send("A nova senha precisa ter pelo menos 6 caracteres.");
+  }
+
+  const conta = db
+    .prepare("SELECT * FROM contas WHERE id = ?")
+    .get(req.session.contaId);
+
+  const senhaCorreta = await bcrypt.compare(senhaAtual, conta.senha);
+
+  if (!senhaCorreta) {
+    return res.status(401).send("Senha atual incorreta.");
+  }
+
+  const novaCriptografada = await bcrypt.hash(novaSenha, 10);
+
+  db.prepare("UPDATE contas SET senha = ? WHERE id = ?")
+    .run(novaCriptografada, req.session.contaId);
+
+  res.send("Senha alterada com sucesso!");
 });
 
 

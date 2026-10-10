@@ -51,7 +51,7 @@ function abrirModalEditar(usuario) {
     btnCancelar.removeEventListener("click", fechar);
   }
 
-  function salvar() {
+  async function salvar() {
     const novoNome = inputNome.value.trim();
     const novoCurso = inputCurso.value.trim();
     const novoEmail = inputEmail.value.trim();
@@ -61,15 +61,20 @@ function abrirModalEditar(usuario) {
       return;
     }
 
-    fetch(`/usuarios/${usuario.id}`, {
+    const resposta = await fetch(`/usuarios/${usuario.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nome: novoNome, curso: novoCurso, email: novoEmail })
-    }).then(() => {
-      mostrarToast("Usuário atualizado!");
-      carregarUsuarios();
-      fechar();
     });
+
+    if (!resposta.ok) {
+      mostrarToast(await resposta.text(), "erro");
+      return;
+    }
+
+    mostrarToast("Usuário atualizado!");
+    carregarUsuarios();
+    fechar();
   }
 
   btnSalvar.addEventListener("click", salvar);
@@ -80,10 +85,16 @@ let todosUsuarios = [];
 
 function carregarUsuarios() {
   const carregando = document.getElementById("carregando");
+  carregando.textContent = "Carregando...";
   carregando.style.display = "block";
 
   fetch("/usuarios")
-    .then(resposta => resposta.json())
+    .then(resposta => {
+      if (!resposta.ok) {
+        throw new Error("Não foi possível carregar");
+      }
+      return resposta.json();
+    })
     .then(usuarios => {
       carregando.style.display = "none";
       todosUsuarios = usuarios;
@@ -155,7 +166,7 @@ document.getElementById("input-busca").addEventListener("input", aplicarFiltroEO
 document.getElementById("select-ordenar").addEventListener("change", aplicarFiltroEOrdenacao);
 
 const form = document.getElementById("form-usuario");
-form.addEventListener("submit", function (evento) {
+form.addEventListener("submit", async function (evento) {
   evento.preventDefault();
 
   const nome = document.getElementById("input-nome").value.trim();
@@ -167,13 +178,18 @@ form.addEventListener("submit", function (evento) {
     return;
   }
 
-  fetch("/usuarios", {
+  const resposta = await fetch("/usuarios", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nome, curso, email })
-  }).then(() => {
-    mostrarToast("Usuário adicionado!");
-    carregarUsuarios();
-    form.reset();
   });
+
+  if (!resposta.ok) {
+    mostrarToast(await resposta.text(), "erro");
+    return;
+  }
+
+  mostrarToast("Usuário adicionado!");
+  carregarUsuarios();
+  form.reset();
 });

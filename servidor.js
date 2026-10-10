@@ -141,7 +141,7 @@ app.get("/produto/:id", (req, res) => {
 
 // ---------- USUÁRIOS ----------
 
-app.get("/usuarios", (req, res) => {
+app.get("/usuarios", exigirLogin, (req, res) => {
   const usuarios = db.prepare("SELECT * FROM usuarios").all();
   res.json(usuarios);
 });

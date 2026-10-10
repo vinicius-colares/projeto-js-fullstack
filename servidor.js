@@ -23,6 +23,14 @@ function exigirLogin(req, res, next) {
   }
 }
 
+// Ferramentas de validação
+const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function textoValido(valor, max = 100) {
+  return typeof valor === "string" && valor.trim() !== "" && valor.trim().length <= max;
+}
+
+// ---------- TAREFAS ----------
 
 app.get("/tarefas", exigirLogin, (req, res) => {
   const tarefas = db
@@ -31,12 +39,11 @@ app.get("/tarefas", exigirLogin, (req, res) => {
   res.json(tarefas);
 });
 
-
 app.post("/tarefas", exigirLogin, (req, res) => {
   const { titulo } = req.body;
 
-  if (!titulo || titulo.trim() === "") {
-    return res.status(400).send("O título é obrigatório.");
+  if (!textoValido(titulo, 200)) {
+    return res.status(400).send("O título é obrigatório (até 200 caracteres).");
   }
 
   const resultado = db
@@ -50,9 +57,13 @@ app.post("/tarefas", exigirLogin, (req, res) => {
 app.put("/tarefas/:id", exigirLogin, (req, res) => {
   const { titulo, concluida } = req.body;
 
+  if (!textoValido(titulo, 200)) {
+    return res.status(400).send("O título é obrigatório (até 200 caracteres).");
+  }
+
   const resultado = db
     .prepare("UPDATE tarefas SET titulo = ?, concluida = ? WHERE id = ? AND conta_id = ?")
-    .run(titulo, concluida ? 1 : 0, req.params.id, req.session.contaId);
+    .run(titulo.trim(), concluida ? 1 : 0, req.params.id, req.session.contaId);
 
   if (resultado.changes === 0) {
     return res.status(404).send("Tarefa não encontrada.");
@@ -74,15 +85,22 @@ app.delete("/tarefas/:id", exigirLogin, (req, res) => {
   res.send("Tarefa deletada!");
 });
 
+// ---------- PERFIL ----------
+
 app.put("/perfil/senha", exigirLogin, async (req, res) => {
   const { senhaAtual, novaSenha } = req.body;
 
-  if (!senhaAtual || !novaSenha) {
+  if (
+    typeof senhaAtual !== "string" ||
+    typeof novaSenha !== "string" ||
+    !senhaAtual ||
+    !novaSenha
+  ) {
     return res.status(400).send("Preencha a senha atual e a nova senha.");
   }
 
-  if (novaSenha.length < 6) {
-    return res.status(400).send("A nova senha precisa ter pelo menos 6 caracteres.");
+  if (novaSenha.length < 6 || novaSenha.length > 72) {
+    return res.status(400).send("A nova senha precisa ter entre 6 e 72 caracteres.");
   }
 
   const conta = db
@@ -103,6 +121,7 @@ app.put("/perfil/senha", exigirLogin, async (req, res) => {
   res.send("Senha alterada com sucesso!");
 });
 
+// ---------- ROTAS DE TESTE ----------
 
 app.get("/", (req, res) => {
   res.send("Olá, meu primeiro servidor!");
@@ -120,27 +139,50 @@ app.get("/produto/:id", (req, res) => {
   res.send(`Você pediu o produto de número ${req.params.id}`);
 });
 
+// ---------- USUÁRIOS ----------
+
 app.get("/usuarios", (req, res) => {
   const usuarios = db.prepare("SELECT * FROM usuarios").all();
   res.json(usuarios);
 });
 
-app.get("/usuarios/adicionar/:nome/:curso", (req, res) => {
-  const { nome, curso } = req.params;
-  db.prepare("INSERT INTO usuarios (nome, curso) VALUES (?, ?)").run(nome, curso);
-  res.send(`Usuário ${nome} adicionado com sucesso!`);
-});
-
 app.post("/usuarios", exigirLogin, (req, res) => {
   const { nome, curso, email } = req.body;
-  db.prepare("INSERT INTO usuarios (nome, curso, email) VALUES (?, ?, ?)").run(nome, curso, email);
-  res.send(`Usuário ${nome} adicionado com sucesso via POST!`);
+
+  if (!textoValido(nome) || !textoValido(curso) || !textoValido(email)) {
+    return res.status(400).send("Preencha nome, curso e e-mail (até 100 caracteres cada).");
+  }
+
+  if (!REGEX_EMAIL.test(email.trim())) {
+    return res.status(400).send("E-mail inválido.");
+  }
+
+  db.prepare("INSERT INTO usuarios (nome, curso, email) VALUES (?, ?, ?)")
+    .run(nome.trim(), curso.trim(), email.trim());
+
+  res.send(`Usuário ${nome.trim()} adicionado com sucesso via POST!`);
 });
 
 app.put("/usuarios/:id", exigirLogin, (req, res) => {
   const { id } = req.params;
   const { nome, curso, email } = req.body;
-  db.prepare("UPDATE usuarios SET nome = ?, curso = ?, email = ? WHERE id = ?").run(nome, curso, email, id);
+
+  if (!textoValido(nome) || !textoValido(curso) || !textoValido(email)) {
+    return res.status(400).send("Preencha nome, curso e e-mail (até 100 caracteres cada).");
+  }
+
+  if (!REGEX_EMAIL.test(email.trim())) {
+    return res.status(400).send("E-mail inválido.");
+  }
+
+  const resultado = db
+    .prepare("UPDATE usuarios SET nome = ?, curso = ?, email = ? WHERE id = ?")
+    .run(nome.trim(), curso.trim(), email.trim(), id);
+
+  if (resultado.changes === 0) {
+    return res.status(404).send("Usuário não encontrado.");
+  }
+
   res.send(`Usuário ${id} atualizado com sucesso!`);
 });
 
@@ -150,29 +192,44 @@ app.delete("/usuarios/:id", exigirLogin, (req, res) => {
   res.send(`Usuário ${id} deletado com sucesso!`);
 });
 
+// ---------- CONTAS (registro, login, logout, sessão) ----------
+
 // Registro de nova conta
 app.post("/registro", async (req, res) => {
   const { email, senha } = req.body;
 
-  if (!email || !senha) {
+  if (!textoValido(email) || typeof senha !== "string") {
     return res.status(400).send("Preencha e-mail e senha.");
+  }
+
+  const emailLimpo = email.trim();
+
+  if (!REGEX_EMAIL.test(emailLimpo)) {
+    return res.status(400).send("E-mail inválido.");
+  }
+
+  if (senha.length < 6 || senha.length > 72) {
+    return res.status(400).send("A senha precisa ter entre 6 e 72 caracteres.");
   }
 
   const senhaCriptografada = await bcrypt.hash(senha, 10);
 
   try {
-    db.prepare("INSERT INTO contas (email, senha) VALUES (?, ?)").run(email, senhaCriptografada);
+    db.prepare("INSERT INTO contas (email, senha) VALUES (?, ?)").run(emailLimpo, senhaCriptografada);
     res.send("Conta criada com sucesso!");
   } catch (erro) {
     res.status(400).send("Esse e-mail já está cadastrado.");
   }
 });
 
-
 app.post("/login", async (req, res) => {
   const { email, senha } = req.body;
 
-  const conta = db.prepare("SELECT * FROM contas WHERE email = ?").get(email);
+  if (typeof email !== "string" || typeof senha !== "string") {
+    return res.status(400).send("Preencha e-mail e senha.");
+  }
+
+  const conta = db.prepare("SELECT * FROM contas WHERE email = ?").get(email.trim());
 
   if (!conta) {
     return res.status(401).send("E-mail ou senha inválidos.");
